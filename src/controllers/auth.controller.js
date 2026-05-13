@@ -9,7 +9,10 @@ const COOKIE_NAME = 'token';
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  // Frontend and API are hosted on different Render domains in production.
+  // Cross-site cookies must use SameSite=None and Secure, otherwise the
+  // browser accepts login but does not send the cookie on the next API call.
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 

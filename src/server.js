@@ -21,6 +21,11 @@ import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  ...(process.env.CLIENT_URLS || '').split(','),
+  'http://localhost:5173',
+].map((origin) => origin?.trim()).filter(Boolean);
 
 // Rate limiting
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Prea multe încercări. Încearcă din nou în 15 minute.' } });
@@ -36,7 +41,10 @@ app.use(compression());
 
 // Middleware global
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'https://cioco-front.onrender.com',
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`Origin nepermis de CORS: ${origin}`));
+  },
   credentials: true,
 }));
 app.use(cookieParser());
