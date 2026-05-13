@@ -1,0 +1,52 @@
+import { Product } from '../models/Product.js';
+import { asyncHandler } from '../middleware/error.middleware.js';
+
+export const getProductTags = asyncHandler(async (req, res) => {
+  const tags = await Product.distinct('tags', { active: true });
+  res.json(tags.filter(t => t && t.trim()).sort());
+});
+
+export const listProducts = asyncHandler(async (req, res) => {
+  const { category, tag, search, sort, limit, inStock, ids } = req.query;
+  const filter = { active: true };
+  if (ids) filter._id = { $in: ids.split(',').filter(Boolean) };
+  if (category && category !== 'all') filter.category = category;
+  if (tag) filter.tags = { $in: Array.isArray(tag) ? tag : [tag] };
+  if (search) {
+    const esc = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = new RegExp(esc, 'i');
+    filter.$or = [{ name: rx }, { short: rx }, { description: rx }];
+  }
+  if (inStock === 'true') filter.stock = { $gt: 0 };
+  let q = Product.find(filter);
+  if (sort === 'price-asc') q = q.sort({ price: 1 });
+  else if (sort === 'price-desc') q = q.sort({ price: -1 });
+  else if (sort === 'rating' || sort === 'popular') q = q.sort({ rating: -1, reviewsCount: -1 });
+  else q = q.sort({ createdAt: -1 });
+  if (limit) q = q.limit(Number(limit));
+  const products = await q.exec();
+  res.json(products);
+});
+
+export const getProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) return res.status(404).json({ error: 'Produs negăsit' });
+  res.json(product);
+});
+
+export const createProduct = asyncHandler(async (req, res) => {
+  const product = await Product.create(req.body);
+  res.status(201).json(product);
+});
+
+export const updateProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!product) return res.status(404).json({ error: 'Produs negăsit' });
+  res.json(product);
+});
+
+export const deleteProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findByIdAndDelete(req.params.id);
+  if (!product) return res.status(404).json({ error: 'Produs negăsit' });
+  res.json({ ok: true });
+});
