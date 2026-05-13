@@ -45,9 +45,7 @@ export const submitReview = asyncHandler(async (req, res) => {
     text: text.trim(),
   });
 
-  await recalcProduct(req.params.id);
-
-  res.status(201).json({ ok: true, message: 'Recenzia a fost publicată. Mulțumim!' });
+  res.status(201).json({ ok: true, message: 'Recenzia ta a fost trimisă și va fi publicată după verificare. Mulțumim!' });
 });
 
 // GET /admin/reviews — all reviews with optional status filter

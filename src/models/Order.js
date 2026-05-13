@@ -54,3 +54,16 @@ orderSchema.pre('validate', async function (next) {
 });
 
 export const Order = mongoose.model('Order', orderSchema);
+
+export async function syncOrderCounter() {
+  const last = await Order.findOne({}, 'orderNumber').sort({ createdAt: -1 }).lean();
+  if (!last?.orderNumber) return;
+  const num = parseInt(last.orderNumber.replace('#', ''), 10);
+  if (!num) return;
+  const seq = num - 3143;
+  const existing = await Counter.findById('orders').lean();
+  if (!existing || existing.seq < seq) {
+    await Counter.findByIdAndUpdate('orders', { $set: { seq } }, { upsert: true });
+    console.log(`[counter] orderNumber sync: seq set to ${seq} (#${num})`);
+  }
+}

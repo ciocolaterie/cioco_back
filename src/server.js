@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import { rateLimit } from 'express-rate-limit';
 import { connectDB } from './config/db.js';
 import { seedAdmin } from './config/seedAdmin.js';
+import { syncOrderCounter } from './models/Order.js';
 import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.routes.js';
 import orderRoutes from './routes/order.routes.js';
@@ -75,6 +76,7 @@ const start = async () => {
   try {
     await connectDB();
     await seedAdmin();
+    await syncOrderCounter();
     app.listen(PORT, () => {
       console.log(`🍫 Server pornit pe http://localhost:${PORT}`);
     });

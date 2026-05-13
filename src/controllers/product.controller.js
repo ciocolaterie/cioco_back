@@ -39,8 +39,13 @@ export const createProduct = asyncHandler(async (req, res) => {
   res.status(201).json(product);
 });
 
+const PRODUCT_READONLY = ['_id', '__v', 'rating', 'reviewsCount', 'createdAt', 'updatedAt'];
+
 export const updateProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const update = Object.fromEntries(
+    Object.entries(req.body).filter(([k]) => !PRODUCT_READONLY.includes(k))
+  );
+  const product = await Product.findByIdAndUpdate(req.params.id, update, { new: true });
   if (!product) return res.status(404).json({ error: 'Produs negăsit' });
   res.json(product);
 });

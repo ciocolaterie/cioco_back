@@ -10,9 +10,16 @@ export const getSettings = asyncHandler(async (req, res) => {
   res.json(settings);
 });
 
+const SETTINGS_FIELDS = [
+  'storeName', 'storePhone', 'storeEmail', 'storeAddress', 'storeLat', 'storeLng',
+  'categories', 'zones', 'notifications', 'schedule',
+];
+
 export const updateSettings = asyncHandler(async (req, res) => {
   const settings = await getOrCreate();
-  Object.assign(settings, req.body);
+  for (const key of SETTINGS_FIELDS) {
+    if (key in req.body) settings[key] = req.body[key];
+  }
   await settings.save();
   res.json(settings);
 });
