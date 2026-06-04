@@ -22,6 +22,10 @@ import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Trust the first proxy (Render, Railway, Heroku, etc.) so that
+// req.secure is true and secure cookies are set correctly over HTTPS.
+app.set('trust proxy', 1);
 const allowedOrigins = [
   process.env.CLIENT_URL,
   ...(process.env.CLIENT_URLS || '').split(','),
@@ -29,9 +33,10 @@ const allowedOrigins = [
 ].map((origin) => origin?.trim()).filter(Boolean);
 
 // Rate limiting
-const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Prea multe încercări. Încearcă din nou în 15 minute.' } });
-const promoLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 30, message: { error: 'Prea multe încercări.' } });
-const contactLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { error: 'Prea multe mesaje trimise.' } });
+const skipRateLimitInTests = () => process.env.NODE_ENV === 'test';
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, skip: skipRateLimitInTests, message: { error: 'Prea multe încercări. Încearcă din nou în 15 minute.' } });
+const promoLimiter = rateLimit({ windowMs: 5 * 60 * 1000, max: 30, skip: skipRateLimitInTests, message: { error: 'Prea multe încercări.' } });
+const contactLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, skip: skipRateLimitInTests, message: { error: 'Prea multe mesaje trimise.' } });
 
 // Security headers
 app.use(helmet({

@@ -6,13 +6,29 @@ import { asyncHandler } from '../middleware/error.middleware.js';
 const getOrCreate = () => Settings.findOne().then(s => s || Settings.create({}));
 
 export const getSettings = asyncHandler(async (req, res) => {
-  const settings = await getOrCreate();
-  res.json(settings);
+  let raw = await Settings.findOne().lean();
+  if (!raw) raw = (await Settings.create({})).toObject();
+
+  // Migrate: strings → objects, or objects with missing name → restore defaults
+  const DEFAULT_CATS = ['Tablete','Praline','Trufe','Fructe glasate','Caramele','Cadouri','Ciocolată caldă','Bombonierie'];
+  const needsMigration = raw.categories?.some(c => typeof c === 'string' || !c?.name);
+  if (needsMigration) {
+    const migrated = (raw.categories || []).map((c, i) => ({
+      name: typeof c === 'string' ? c : (c?.name || DEFAULT_CATS[i] || `Categorie ${i + 1}`),
+      image: c?.image || '',
+    }));
+    await Settings.updateOne({ _id: raw._id }, { $set: { categories: migrated } });
+    raw.categories = migrated;
+  }
+
+  res.json(raw);
 });
 
 const SETTINGS_FIELDS = [
   'storeName', 'storePhone', 'storeEmail', 'storeAddress', 'storeLat', 'storeLng',
-  'categories', 'zones', 'notifications', 'schedule',
+  'storeInstagram', 'storeFacebook',
+  'categories', 'zones', 'notifications', 'schedule', 'banner',
+  'storeLogo', 'storeAbout', 'loyaltyOrders', 'loyaltySpent', 'emailTemplates',
 ];
 
 export const updateSettings = asyncHandler(async (req, res) => {
@@ -20,13 +36,22 @@ export const updateSettings = asyncHandler(async (req, res) => {
   for (const key of SETTINGS_FIELDS) {
     if (key in req.body) settings[key] = req.body[key];
   }
+  // Ensure categories are always objects
+  if (settings.categories?.some(c => typeof c === 'string')) {
+    settings.categories = settings.categories.map(c =>
+      typeof c === 'string' ? { name: c, image: '' } : c
+    );
+  }
   await settings.save();
   res.json(settings);
 });
 
 export const getCategories = asyncHandler(async (req, res) => {
-  const settings = await getOrCreate();
-  res.json(settings.categories);
+  const raw = await Settings.findOne().lean();
+  const cats = (raw?.categories || [])
+    .map(c => typeof c === 'string' ? { name: c, image: '' } : { name: c.name || '', image: c.image || '' })
+    .filter(c => c.name);
+  res.json(cats);
 });
 
 export const getPublicStats = asyncHandler(async (req, res) => {
@@ -75,7 +100,10 @@ export const getStoreInfo = asyncHandler(async (req, res) => {
     storeAddress: s.storeAddress,
     storeLat: s.storeLat,
     storeLng: s.storeLng,
+    storeInstagram: s.storeInstagram,
+    storeFacebook: s.storeFacebook,
     schedule: s.schedule,
     zones: s.zones,
+    banner: s.banner,
   });
 });

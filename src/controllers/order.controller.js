@@ -137,6 +137,9 @@ export const updateStatus = asyncHandler(async (req, res) => {
       await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.qty } });
     }
   }
+  if (['livrata', 'anulata'].includes(status)) {
+    order.urgent = false;
+  }
 
   order.status = status;
   order.statusHistory.push({ status, by: req.user._id });
@@ -144,4 +147,100 @@ export const updateStatus = asyncHandler(async (req, res) => {
   const s2 = await Settings.findOne() || {};
   sendOrderNotification(order, 'status_changed', { storeName: s2.storeName, storeAddress: s2.storeAddress, storeEmail: s2.storeEmail }).catch(() => {});
   res.json(order);
+});
+
+export const bulkUpdateStatus = asyncHandler(async (req, res) => {
+  const { ids, status } = req.body;
+  const valid = ['noua', 'in_pregatire', 'gata', 'livrata', 'anulata'];
+  if (!valid.includes(status) || !Array.isArray(ids) || !ids.length) {
+    return res.status(400).json({ error: 'Date invalide' });
+  }
+  const orders = await Order.find({ _id: { $in: ids } });
+  for (const order of orders) {
+    if (status === 'anulata' && order.status !== 'anulata') {
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.qty } });
+      }
+    }
+    if (['livrata', 'anulata'].includes(status)) order.urgent = false;
+    order.status = status;
+    order.statusHistory.push({ status, by: req.user._id });
+    await order.save();
+  }
+  res.json({ updated: orders.length });
+});
+
+export const toggleUrgent = asyncHandler(async (req, res) => {
+  const { urgent, urgentNote } = req.body;
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { urgent: !!urgent, urgentNote: urgentNote || '' },
+    { new: true }
+  );
+  if (!order) return res.status(404).json({ error: 'Comandă negăsită' });
+  res.json(order);
+});
+
+export const updateInternalNote = asyncHandler(async (req, res) => {
+  const { internalNote } = req.body;
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    { internalNote: internalNote || '' },
+    { new: true }
+  );
+  if (!order) return res.status(404).json({ error: 'Comandă negăsită' });
+  res.json(order);
+});
+
+export const createOrderAdmin = asyncHandler(async (req, res) => {
+  const { items, customer, method, address, pickupTime, zone, note, source, deliveryDate } = req.body;
+  if (!items?.length || !customer?.name || !customer?.phone) {
+    return res.status(400).json({ error: 'Date lipsă' });
+  }
+
+  const ids = items.map(i => i.product);
+  const products = await Product.find({ _id: { $in: ids } });
+  const dict = Object.fromEntries(products.map(p => [String(p._id), p]));
+
+  const safeItems = items.map(i => {
+    const p = dict[i.product];
+    if (!p) throw new Error(`Produs invalid: ${i.product}`);
+    return { product: p._id, name: p.name, price: i.price ?? p.price, qty: i.qty };
+  });
+
+  const subtotal = safeItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const settings = await Settings.findOne() || {};
+  const zoneRecord = (settings.zones || []).find(z => z.id === zone);
+  const deliveryFee = method === 'livrare' ? (zoneRecord?.price || 0) : 0;
+  const total = subtotal + deliveryFee;
+
+  const order = await Order.create({
+    user: req.user._id,
+    customer: { name: customer.name, phone: customer.phone, email: customer.email || 'admin@intern' },
+    items: safeItems,
+    subtotal,
+    deliveryFee,
+    total,
+    method,
+    address: method === 'livrare' ? address : (settings.storeAddress || 'Ridicare'),
+    pickupTime,
+    zone,
+    zoneName: zoneRecord?.name,
+    note,
+    source: source || 'online',
+    deliveryDate: deliveryDate ? new Date(deliveryDate) : undefined,
+    status: 'in_pregatire',
+    statusHistory: [{ status: 'in_pregatire', by: req.user._id }],
+  });
+
+  for (const i of safeItems) {
+    await Product.findByIdAndUpdate(i.product, { $inc: { stock: -i.qty } });
+  }
+
+  if (customer.email && customer.email !== 'admin@intern') {
+    const storeInfo = { storeName: settings.storeName, storeAddress: settings.storeAddress, storeEmail: settings.storeEmail };
+    sendOrderNotification(order, 'created', storeInfo).catch(() => {});
+  }
+
+  res.status(201).json(order);
 });

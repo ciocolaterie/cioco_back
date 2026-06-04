@@ -1,4 +1,5 @@
 import { Product } from '../models/Product.js';
+import StockAlert from '../models/StockAlert.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 
 export const getProductTags = asyncHandler(async (req, res) => {
@@ -54,4 +55,18 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) return res.status(404).json({ error: 'Produs negăsit' });
   res.json({ ok: true });
+});
+
+export const createStockAlert = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email obligatoriu.' });
+  const product = await Product.findById(req.params.id).select('stock');
+  if (!product) return res.status(404).json({ error: 'Produs negăsit.' });
+  if (product.stock > 0) return res.status(400).json({ error: 'Produsul este în stoc.' });
+  await StockAlert.findOneAndUpdate(
+    { product: req.params.id, email },
+    { product: req.params.id, email },
+    { upsert: true }
+  );
+  res.status(201).json({ ok: true });
 });

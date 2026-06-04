@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+  customerNote: { type: String, default: '' },
   resetToken: { type: String, select: false },
   resetTokenExpiry: { type: Date, select: false },
 }, { timestamps: true });

@@ -34,6 +34,15 @@ const orderSchema = new mongoose.Schema({
     default: 'noua',
   },
   paymentMethod: { type: String, default: 'cash' },
+  source: {
+    type: String,
+    enum: ['online', 'telefon', 'whatsapp', 'instagram', 'fata_in_fata'],
+    default: 'online',
+  },
+  urgent: { type: Boolean, default: false },
+  urgentNote: { type: String, default: '' },
+  internalNote: { type: String, default: '' },
+  deliveryDate: { type: Date },
   statusHistory: [{
     status: String,
     at: { type: Date, default: Date.now },

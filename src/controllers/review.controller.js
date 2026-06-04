@@ -48,22 +48,31 @@ export const submitReview = asyncHandler(async (req, res) => {
   res.status(201).json({ ok: true, message: 'Recenzia ta a fost trimisă și va fi publicată după verificare. Mulțumim!' });
 });
 
-// GET /admin/reviews — all reviews with optional status filter
+// GET /admin/reviews — paginated, optional status filter
 export const listReviews = asyncHandler(async (req, res) => {
-  const { status } = req.query;
+  const { status, page = 1, limit = 12 } = req.query;
   const filter = status && status !== 'all' ? { status } : {};
-  const reviews = await Review.find(filter)
-    .populate('product', 'name')
-    .sort({ createdAt: -1 })
-    .lean();
+  const skip   = (Number(page) - 1) * Number(limit);
 
-  const counts = await Review.aggregate([
-    { $group: { _id: '$status', count: { $sum: 1 } } },
+  const [reviews, total, counts] = await Promise.all([
+    Review.find(filter)
+      .populate('product', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    Review.countDocuments(filter),
+    Review.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
   ]);
+
   const countMap = { pending: 0, approved: 0, rejected: 0 };
   counts.forEach(c => { countMap[c._id] = c.count; });
 
-  res.json({ reviews, counts: countMap });
+  res.json({
+    reviews,
+    counts: countMap,
+    pagination: { page: Number(page), pages: Math.ceil(total / Number(limit)), total },
+  });
 });
 
 // PATCH /admin/reviews/:id — approve or reject
