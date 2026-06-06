@@ -36,7 +36,7 @@ export const submitReview = asyncHandler(async (req, res) => {
   const existing = await Review.findOne({ product: req.params.id, email: email.toLowerCase() });
   if (existing) return res.status(409).json({ error: 'Ai trimis deja o recenzie pentru acest produs' });
 
-  await Review.create({
+  const review = await Review.create({
     product: req.params.id,
     user: req.user?._id,
     name: name.trim(),
@@ -44,6 +44,8 @@ export const submitReview = asyncHandler(async (req, res) => {
     rating: r,
     text: text.trim(),
   });
+
+  if (review.status === 'approved') await recalcProduct(req.params.id);
 
   res.status(201).json({ ok: true, message: 'Recenzia ta a fost trimisă și va fi publicată după verificare. Mulțumim!' });
 });

@@ -49,9 +49,14 @@ function orderCreatedHtml(order, store) {
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#F5F0EB;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(28,20,16,.08);">
-    <div style="background:#1C1410;padding:32px 40px;text-align:center;">
-      <div style="width:48px;height:48px;background:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;">${esc(storeName[0]?.toLowerCase())}</div>
-      <h1 style="color:#fff;font-size:24px;margin:0;font-weight:400;letter-spacing:-.5px;">${esc(storeName)}</h1>
+    <div style="background:#1C1410;padding:44px 40px 36px;text-align:center;">
+      <img src="https://res.cloudinary.com/do3wzvgto/image/upload/v1780763493/ciocolaterie/logo-email.svg" width="88" height="88" alt="${esc(storeName)}" style="display:inline-block;margin-bottom:16px;"/>
+      <div style="color:#fff;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400;letter-spacing:5px;text-transform:uppercase;margin-bottom:14px;">${esc(storeName)}</div>
+      <div>
+        <span style="display:inline-block;width:28px;height:1px;background:#C9821A;opacity:.5;vertical-align:middle;"></span>
+        <span style="color:#C9821A;font-size:9px;letter-spacing:.18em;font-family:Arial,sans-serif;vertical-align:middle;padding:0 10px;">CIOCOLATERIE ARTIZANALĂ</span>
+        <span style="display:inline-block;width:28px;height:1px;background:#C9821A;opacity:.5;vertical-align:middle;"></span>
+      </div>
     </div>
     <div style="padding:40px;">
       <h2 style="font-size:22px;color:#1C1410;margin:0 0 8px;">Bună ${esc(order.customer.name)}! 🍫</h2>
@@ -100,9 +105,14 @@ function statusChangedHtml(order, store) {
 <head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#F5F0EB;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(28,20,16,.08);">
-    <div style="background:#1C1410;padding:32px 40px;text-align:center;">
-      <div style="width:48px;height:48px;background:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;">${esc(storeName[0]?.toLowerCase())}</div>
-      <h1 style="color:#fff;font-size:24px;margin:0;font-weight:400;letter-spacing:-.5px;">${esc(storeName)}</h1>
+    <div style="background:#1C1410;padding:44px 40px 36px;text-align:center;">
+      <img src="https://res.cloudinary.com/do3wzvgto/image/upload/v1780763493/ciocolaterie/logo-email.svg" width="88" height="88" alt="${esc(storeName)}" style="display:inline-block;margin-bottom:16px;"/>
+      <div style="color:#fff;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400;letter-spacing:5px;text-transform:uppercase;margin-bottom:14px;">${esc(storeName)}</div>
+      <div>
+        <span style="display:inline-block;width:28px;height:1px;background:#C9821A;opacity:.5;vertical-align:middle;"></span>
+        <span style="color:#C9821A;font-size:9px;letter-spacing:.18em;font-family:Arial,sans-serif;vertical-align:middle;padding:0 10px;">CIOCOLATERIE ARTIZANALĂ</span>
+        <span style="display:inline-block;width:28px;height:1px;background:#C9821A;opacity:.5;vertical-align:middle;"></span>
+      </div>
     </div>
     <div style="padding:40px;text-align:center;">
       <div style="font-size:48px;margin-bottom:16px;">${emoji}</div>

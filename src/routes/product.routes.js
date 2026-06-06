@@ -10,6 +10,7 @@ const alertLimiter     = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message:
 const router = Router();
 router.get('/', ctrl.listProducts);
 router.get('/tags', ctrl.getProductTags);
+router.get('/bestsellers', ctrl.getBestsellers);
 router.get('/:id', ctrl.getProduct);
 router.post('/', requireAuth, requireAdmin, ctrl.createProduct);
 router.put('/:id', requireAuth, requireAdmin, ctrl.updateProduct);

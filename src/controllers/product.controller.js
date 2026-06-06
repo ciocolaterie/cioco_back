@@ -1,4 +1,5 @@
 import { Product } from '../models/Product.js';
+import { Order } from '../models/Order.js';
 import StockAlert from '../models/StockAlert.js';
 import { asyncHandler } from '../middleware/error.middleware.js';
 
@@ -27,6 +28,22 @@ export const listProducts = asyncHandler(async (req, res) => {
   if (limit) q = q.limit(Number(limit));
   const products = await q.exec();
   res.json(products);
+});
+
+export const getBestsellers = asyncHandler(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 3;
+  const top = await Order.aggregate([
+    { $match: { status: { $ne: 'anulata' } } },
+    { $unwind: '$items' },
+    { $group: { _id: '$items.product', sold: { $sum: '$items.qty' } } },
+    { $sort: { sold: -1 } },
+    { $limit: limit },
+    { $lookup: { from: 'products', localField: '_id', foreignField: '_id', as: 'product' } },
+    { $unwind: '$product' },
+    { $match: { 'product.active': true } },
+    { $replaceRoot: { newRoot: { $mergeObjects: ['$product', { sold: '$sold' }] } } },
+  ]);
+  res.json(top);
 });
 
 export const getProduct = asyncHandler(async (req, res) => {
