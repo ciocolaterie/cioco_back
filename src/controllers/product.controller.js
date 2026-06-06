@@ -24,6 +24,7 @@ export const listProducts = asyncHandler(async (req, res) => {
   if (sort === 'price-asc') q = q.sort({ price: 1 });
   else if (sort === 'price-desc') q = q.sort({ price: -1 });
   else if (sort === 'rating' || sort === 'popular') q = q.sort({ rating: -1, reviewsCount: -1 });
+  else if (sort === 'newest') q = q.sort({ createdAt: -1 });
   else q = q.sort({ createdAt: -1 });
   if (limit) q = q.limit(Number(limit));
   const products = await q.exec();

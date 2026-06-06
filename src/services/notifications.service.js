@@ -24,10 +24,18 @@ function getBrevoClient() {
   return new BrevoClient({ apiKey: key });
 }
 
+const DEFAULT_LOGO = 'https://res.cloudinary.com/do3wzvgto/image/upload/v1780763493/ciocolaterie/logo-email.svg';
+
+function logoHtml(storeLogo, storeName) {
+  const src = storeLogo || DEFAULT_LOGO;
+  return `<img src="${src}" width="88" height="88" alt="${esc(storeName)}" style="display:inline-block;margin-bottom:16px;"/>`;
+}
+
 function orderCreatedHtml(order, store) {
   const storeName = store.storeName || 'Magazin';
   const storeAddress = store.storeAddress || '';
   const storeEmail = store.storeEmail || '';
+  const storeLogo = store.storeLogo || '';
   const itemsHtml = order.items.map(i =>
     `<tr>
       <td style="padding:8px 0;border-bottom:1px solid #EDE8E1;">${esc(i.qty)} × ${esc(i.name)}</td>
@@ -50,7 +58,7 @@ function orderCreatedHtml(order, store) {
 <body style="margin:0;padding:0;background:#F5F0EB;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(28,20,16,.08);">
     <div style="background:#1C1410;padding:44px 40px 36px;text-align:center;">
-      <img src="https://res.cloudinary.com/do3wzvgto/image/upload/v1780763493/ciocolaterie/logo-email.svg" width="88" height="88" alt="${esc(storeName)}" style="display:inline-block;margin-bottom:16px;"/>
+      ${logoHtml(storeLogo, storeName)}
       <div style="color:#fff;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400;letter-spacing:5px;text-transform:uppercase;margin-bottom:14px;">${esc(storeName)}</div>
       <div>
         <span style="display:inline-block;width:28px;height:1px;background:#C9821A;opacity:.5;vertical-align:middle;"></span>
@@ -96,6 +104,7 @@ function statusChangedHtml(order, store) {
   const storeName = store.storeName || 'Magazin';
   const storeAddress = store.storeAddress || '';
   const storeEmail = store.storeEmail || '';
+  const storeLogo = store.storeLogo || '';
   const statusText = STATUS_TEXT[order.status] || 'Starea comenzii s-a schimbat';
   const emoji = STATUS_EMOJI[order.status] || '📦';
 
@@ -106,7 +115,7 @@ function statusChangedHtml(order, store) {
 <body style="margin:0;padding:0;background:#F5F0EB;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(28,20,16,.08);">
     <div style="background:#1C1410;padding:44px 40px 36px;text-align:center;">
-      <img src="https://res.cloudinary.com/do3wzvgto/image/upload/v1780763493/ciocolaterie/logo-email.svg" width="88" height="88" alt="${esc(storeName)}" style="display:inline-block;margin-bottom:16px;"/>
+      ${logoHtml(storeLogo, storeName)}
       <div style="color:#fff;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400;letter-spacing:5px;text-transform:uppercase;margin-bottom:14px;">${esc(storeName)}</div>
       <div>
         <span style="display:inline-block;width:28px;height:1px;background:#C9821A;opacity:.5;vertical-align:middle;"></span>

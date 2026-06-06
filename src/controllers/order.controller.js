@@ -92,7 +92,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   // Notificare client (email + push, async, nu blocăm răspunsul)
-  const storeInfo = { storeName: settings.storeName, storeAddress: settings.storeAddress, storeEmail: settings.storeEmail };
+  const storeInfo = { storeName: settings.storeName, storeAddress: settings.storeAddress, storeEmail: settings.storeEmail, storeLogo: settings.storeLogo };
   sendOrderNotification(order, 'created', storeInfo).catch(() => {});
 
   res.status(201).json(order);
@@ -121,7 +121,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   order.statusHistory.push({ status: 'anulata', by: req.user?._id });
   await order.save();
   const s = await Settings.findOne() || {};
-  sendOrderNotification(order, 'status_changed', { storeName: s.storeName, storeAddress: s.storeAddress, storeEmail: s.storeEmail }).catch(() => {});
+  sendOrderNotification(order, 'status_changed', { storeName: s.storeName, storeAddress: s.storeAddress, storeEmail: s.storeEmail, storeLogo: s.storeLogo }).catch(() => {});
   res.json(order);
 });
 
@@ -238,7 +238,7 @@ export const createOrderAdmin = asyncHandler(async (req, res) => {
   }
 
   if (customer.email && customer.email !== 'admin@intern') {
-    const storeInfo = { storeName: settings.storeName, storeAddress: settings.storeAddress, storeEmail: settings.storeEmail };
+    const storeInfo = { storeName: settings.storeName, storeAddress: settings.storeAddress, storeEmail: settings.storeEmail, storeLogo: settings.storeLogo };
     sendOrderNotification(order, 'created', storeInfo).catch(() => {});
   }
 

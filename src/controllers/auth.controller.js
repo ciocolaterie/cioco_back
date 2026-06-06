@@ -35,8 +35,8 @@ export const register = asyncHandler(async (req, res) => {
   if (existing) return res.status(409).json({ error: 'Email deja folosit' });
   const hashed = await bcrypt.hash(password, 10);
   const user = await User.create({ name, email, phone, password: hashed });
-  setTokenCookie(res, user);
-  res.status(201).json({ user });
+  const token = setTokenCookie(res, user);
+  res.status(201).json({ user, token });
 });
 
 export const login = asyncHandler(async (req, res) => {
@@ -45,8 +45,8 @@ export const login = asyncHandler(async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Credențiale invalide' });
   const ok = await user.comparePassword(password);
   if (!ok) return res.status(401).json({ error: 'Credențiale invalide' });
-  setTokenCookie(res, user);
-  res.json({ user });
+  const token = setTokenCookie(res, user);
+  res.json({ user, token });
 });
 
 export const logout = asyncHandler(async (req, res) => {
@@ -134,6 +134,6 @@ export const resetPassword = asyncHandler(async (req, res) => {
   user.resetTokenExpiry = undefined;
   await user.save();
 
-  setTokenCookie(res, user);
-  res.json({ user });
+  const authToken = setTokenCookie(res, user);
+  res.json({ user, token: authToken });
 });
